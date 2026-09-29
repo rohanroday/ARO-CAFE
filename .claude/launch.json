@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "aro-cafe", "runtimeExecutable": "npx.cmd", "runtimeArgs": ["-y", "http-server", "aro-cafe", "-p", "8080", "-c-1", "--silent"], "port": 8080 }
+  ]
+}
