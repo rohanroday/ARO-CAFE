@@ -1,0 +1,5 @@
+/* scroll-driven pieces are composited, never repainted */
+html:not(.phone):not(.rm) .tile .ph img,html:not(.phone):not(.rm) .team-photos .main,html:not(.phone):not(.rm) .team-photos .side,html:not(.phone):not(.rm) .pola{will-change:transform;backface-visibility:hidden}
+
+/* reduced motion: final states, nothing moves */
+.rm *,.rm *::before,.rm *::after{animation:none!important;transition:none!important}

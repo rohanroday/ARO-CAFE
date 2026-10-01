@@ -1,0 +1,36 @@
+/* one environment: fixed drifting light + grain */
+.env{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:var(--canvas)}
+.env i{position:absolute;border-radius:50%;opacity:.5;will-change:transform}
+.env i:nth-child(1){width:60vmax;height:60vmax;left:-20vmax;top:-10vmax;background:radial-gradient(circle,rgba(36,67,194,.10),rgba(36,67,194,.04) 40%,transparent 70%);animation:drift1 90s ease-in-out infinite;animation-delay:-20s}
+.env i:nth-child(2){width:50vmax;height:50vmax;right:-15vmax;top:30vh;background:radial-gradient(circle,rgba(201,142,59,.12),rgba(201,142,59,.05) 40%,transparent 70%);animation:drift2 110s ease-in-out infinite;animation-delay:-45s}
+@keyframes drift1{50%{transform:translate3d(8vw,6vh,0)}}
+@keyframes drift2{50%{transform:translate3d(-7vw,-5vh,0)}}
+.env::after{content:"";position:absolute;inset:0;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* intro curtain */
+.intro{position:fixed;inset:0;z-index:150;background:var(--canvas);display:grid;place-items:center;will-change:transform}
+.intro-in{display:flex;flex-direction:column;align-items:center;gap:22px}
+.intro .wordmark{font-size:clamp(2.6rem,9vw,4.4rem)}
+.intro .bar{width:min(220px,50vw);height:2px;background:rgba(21,32,74,.14);border-radius:2px;overflow:hidden}
+.intro .bar i{display:block;height:100%;background:var(--accent);transform-origin:0 50%;transform:scaleX(0)}
+.intro .hi{font:500 .72rem/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--text-secondary)}
+.rm .intro,.nogl .intro,html:not(.js) .intro{display:none}
+
+/* nav */
+.nav{position:fixed;top:12px;left:50%;z-index:60;width:min(1120px,calc(100% - 2*var(--gutter)));display:flex;align-items:center;justify-content:space-between;gap:16px;padding:7px 7px 7px 18px;border-radius:999px;background:rgba(242,238,230,.8);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(21,32,74,.10);box-shadow:0 8px 30px rgba(16,26,61,.10);transform:translate(-50%,0);transition:transform .6s var(--ease-out)}
+.nav.tucked{transform:translate(-50%,-140%)}
+.brand{display:flex;align-items:center;text-decoration:none}
+.wordmark{font:800 1.4rem/1 var(--display);letter-spacing:-.01em;color:var(--brand);position:relative;padding-top:6px;display:inline-block}
+.wordmark .bird{position:absolute;left:.72em;top:-2px;width:.95em;height:auto}
+.nav ul{display:flex;gap:26px;list-style:none;font-weight:500;font-size:.95rem}
+.nav ul a{text-decoration:none;color:var(--text-secondary);transition:color .3s var(--ease-soft)}
+.nav ul a:hover{color:var(--text-primary)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.55em;font:600 1rem/1 var(--body);text-decoration:none;border:0;cursor:pointer;border-radius:999px;padding:.95em 1.5em;transition:background-color .35s var(--ease-soft),transform .35s var(--ease-out),box-shadow .35s var(--ease-soft),color .35s var(--ease-soft)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 8px 24px rgba(36,67,194,.28)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 12px 30px rgba(36,67,194,.34)}
+.btn-ghost{background:rgba(255,255,255,.6);color:var(--text-primary);box-shadow:inset 0 0 0 1.5px rgba(21,32,74,.45)}
+.btn-ghost:hover{background:#fff;transform:translateY(-2px)}
+.nav .btn{padding:.8em 1.2em;font-size:.92rem}
+.btn svg{width:1.05em;height:1.05em}
+@media (pointer:coarse){.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center}}
+@media (max-width:860px){.nav ul{display:none}}
