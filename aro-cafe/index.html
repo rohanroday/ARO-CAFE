@@ -60,11 +60,11 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 
 /* one environment: fixed drifting light + grain */
 .env{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:var(--canvas)}
-.env i{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5}
-.env i:nth-child(1){width:60vmax;height:60vmax;left:-20vmax;top:-10vmax;background:radial-gradient(circle,rgba(36,67,194,.10),transparent 70%);animation:drift1 90s linear infinite;animation-delay:-20s}
-.env i:nth-child(2){width:50vmax;height:50vmax;right:-15vmax;top:30vh;background:radial-gradient(circle,rgba(201,142,59,.12),transparent 70%);animation:drift2 110s linear infinite;animation-delay:-45s}
-@keyframes drift1{50%{transform:translate(8vw,6vh)}}
-@keyframes drift2{50%{transform:translate(-7vw,-5vh)}}
+.env i{position:absolute;border-radius:50%;opacity:.5;will-change:transform}
+.env i:nth-child(1){width:60vmax;height:60vmax;left:-20vmax;top:-10vmax;background:radial-gradient(circle,rgba(36,67,194,.10),rgba(36,67,194,.04) 40%,transparent 70%);animation:drift1 90s ease-in-out infinite;animation-delay:-20s}
+.env i:nth-child(2){width:50vmax;height:50vmax;right:-15vmax;top:30vh;background:radial-gradient(circle,rgba(201,142,59,.12),rgba(201,142,59,.05) 40%,transparent 70%);animation:drift2 110s ease-in-out infinite;animation-delay:-45s}
+@keyframes drift1{50%{transform:translate3d(8vw,6vh,0)}}
+@keyframes drift2{50%{transform:translate3d(-7vw,-5vh,0)}}
 .env::after{content:"";position:absolute;inset:0;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
 /* intro curtain */
@@ -103,6 +103,8 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .shade{position:absolute;left:0;right:0;bottom:0;height:62%;pointer-events:none;opacity:0;background:linear-gradient(180deg,rgba(242,238,230,0),rgba(242,238,230,.92) 42%,var(--canvas) 70%)}
 .band{position:absolute;z-index:2;opacity:0;text-shadow:var(--tshadow);color:#FBF8F2}
 .band.off{visibility:hidden}
+.band:not(.off){will-change:opacity}
+.band:not(.off) .w,.band:not(.off) .c,.band:not(.off) .dline,.band:not(.off) .soft,.band:not(.off) .sharp{will-change:transform,opacity;backface-visibility:hidden}
 .band::before{content:"";position:absolute;inset:-22% -18%;z-index:-1;pointer-events:none;opacity:calc(.25 + .75*var(--k,1));background:radial-gradient(ellipse 60% 58% at 50% 50%,rgba(12,18,44,var(--sa,.66)) 0%,rgba(12,18,44,calc(var(--sa,.66)*.66)) 46%,rgba(12,18,44,0) 76%)}
 .band .kick{display:inline-block;font:500 .74rem/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:.7em 1em;margin-bottom:1.1rem}
 .chip{background:rgba(12,18,44,.55);border:1px solid rgba(160,170,210,.3);border-radius:10px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);text-shadow:0 1px 3px rgba(8,12,30,.85)}
@@ -338,10 +340,21 @@ h2.title{font:800 clamp(2.1rem,4.6vw,3.9rem)/1.04 var(--display);letter-spacing:
   .visit-in .row .btn{flex:1 1 auto}
 }
 
-footer{padding:56px 0 calc(48px + env(safe-area-inset-bottom));border-top:1px solid rgba(21,32,74,.14)}
-.foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:24px}
+/* footer: a warm goodbye and an open invitation */
+footer{padding:clamp(64px,10vh,110px) 0 calc(40px + env(safe-area-inset-bottom));border-top:1px solid rgba(21,32,74,.14);text-align:center}
+.bye .gull{display:block;width:54px;height:auto;margin:0 auto 1.4rem}
+.bye h2{font:800 clamp(2.1rem,5vw,4rem)/1.05 var(--display);letter-spacing:-.02em;color:var(--brand);max-width:15ch;margin:.9rem auto 0}
+.bye h2 em{font-style:normal;color:var(--accent)}
+.bye .lede{margin:1.3rem auto 0;max-width:46ch}
+.bye .row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:2rem}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:18px 28px;margin-top:clamp(48px,8vh,84px);padding-top:28px;border-top:1px solid rgba(21,32,74,.12);text-align:left}
 .foot p,.foot a{color:var(--text-secondary);font-size:.94rem}
-.foot .small{font-size:.82rem;max-width:62ch;margin-top:.6rem}
+.foot .where{display:flex;align-items:center;flex-wrap:wrap;gap:10px 18px}
+.foot ul{display:flex;flex-wrap:wrap;gap:8px 22px;list-style:none}
+.foot ul a{text-decoration:none;transition:color .3s var(--ease-soft)}
+.foot ul a:hover{color:var(--text-primary)}
+.foot .small{flex:1 1 100%;font-size:.82rem}
+@media (max-width:620px){.bye .row .btn{flex:1 1 auto}.foot{flex-direction:column;align-items:flex-start}}
 
 /* phone dock: directions always one thumb away */
 .dock{position:fixed;left:var(--gutter);right:var(--gutter);bottom:calc(14px + env(safe-area-inset-bottom));z-index:55;display:none;align-items:center;justify-content:space-between;gap:12px;padding:8px 8px 8px 18px;border-radius:999px;background:rgba(16,26,61,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#FBF8F2;text-decoration:none;box-shadow:0 14px 40px rgba(16,26,61,.35);transform:translateY(160%);transition:transform .6s var(--ease-out)}
@@ -350,6 +363,9 @@ footer{padding:56px 0 calc(48px + env(safe-area-inset-bottom));border-top:1px so
 .dock span b{display:block;font:800 1rem/1.1 var(--display);color:#FBF8F2}
 .dock .btn{padding:.8em 1.2em;font-size:.92rem;color:#fff}
 @media (max-width:760px){.dock{display:flex}}
+
+/* scroll-driven pieces are composited, never repainted */
+html:not(.phone):not(.rm) .tile .ph img,html:not(.phone):not(.rm) .team-photos .main,html:not(.phone):not(.rm) .team-photos .side,html:not(.phone):not(.rm) .pola{will-change:transform;backface-visibility:hidden}
 
 /* reduced motion: final states, nothing moves */
 .rm *,.rm *::before,.rm *::after{animation:none!important;transition:none!important}
@@ -371,13 +387,16 @@ footer{padding:56px 0 calc(48px + env(safe-area-inset-bottom));border-top:1px so
 .phone .wordmark{font-size:1.3rem}
 
 .phone .m-hero{display:flex;position:relative;min-height:100svh;min-height:max(100svh,560px);flex-direction:column;justify-content:flex-end;overflow:hidden;background:var(--night);color:#FBF8F2}
-.m-hero .slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;animation:mslide 15s linear infinite both}
-.phone .m-hero .s1{background-image:url(assets/seq/m/001.webp);opacity:1;animation-delay:-1s}
-.phone .m-hero .s2{background-image:url(assets/seq/m/170.webp);animation-delay:4s}
-.phone .m-hero .s3{background-image:url(assets/hero-ending-m.jpg);background-position:50% 30%;animation-delay:9s}
-@keyframes mslide{0%{opacity:0;transform:scale(1.1)}7%{opacity:1}33%{opacity:1}40%{opacity:0;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
-.m-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(12,18,44,.92) 0%,rgba(12,18,44,.7) 34%,rgba(12,18,44,.15) 62%,rgba(12,18,44,.25) 100%)}
-.m-hero .m-in{position:relative;z-index:1;padding:0 var(--gutter) calc(34px + env(safe-area-inset-bottom))}
+/* the film: a real looping video; if the phone refuses to autoplay it (low power mode), the same film is drawn frame by frame on the canvas */
+/* portrait: the film is as wide as the screen and keeps its own shape, so no phone ever crops it */
+.m-film{position:absolute;inset:0 0 auto 0;aspect-ratio:1/1;background-size:cover;background-position:center}
+.phone .m-film{background-image:url(assets/hero-loop-m.jpg)}
+.m-film::after{content:"";position:absolute;inset:0 0 -2px;z-index:1;background:linear-gradient(180deg,rgba(16,26,61,.22) 0%,rgba(16,26,61,0) 20%,rgba(16,26,61,0) 66%,rgba(16,26,61,.7) 88%,var(--night) 100%)}
+.m-film video,.m-film canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s var(--ease-soft);pointer-events:none}
+.m-film video::-webkit-media-controls,.m-film video::-webkit-media-controls-start-playback-button{display:none!important;-webkit-appearance:none}
+.m-film .on{opacity:1}
+.m-hero .m-in{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;margin-top:calc(100vw - 96px);padding:0 var(--gutter) calc(34px + env(safe-area-inset-bottom))}
+.m-hero .m-in .row,.m-hero .m-in .dots{align-self:stretch}
 .m-hero .kick{display:inline-block;font:500 .7rem/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:.7em .9em;margin-bottom:1rem}
 .m-hero h1{font:800 clamp(2.5rem,11.5vw,3.4rem)/1.02 var(--display);letter-spacing:-.02em}
 .m-hero h1 em{font-style:normal;color:var(--gold)}
@@ -387,9 +406,7 @@ footer{padding:56px 0 calc(48px + env(safe-area-inset-bottom));border-top:1px so
 .m-hero .btn-ghost{background:rgba(255,255,255,.1);color:#FBF8F2;box-shadow:inset 0 0 0 1.5px rgba(251,248,242,.65)}
 .m-hero .dots{display:flex;gap:6px;margin-top:1.4rem}
 .m-hero .dots i{height:3px;flex:1;border-radius:3px;background:rgba(251,248,242,.25);overflow:hidden;position:relative}
-.m-hero .dots i::after{content:"";position:absolute;inset:0;background:#FBF8F2;transform-origin:0 50%;transform:scaleX(0);animation:mdot 15s linear infinite both}
-.m-hero .dots i:nth-child(1)::after{animation-delay:-1s}.m-hero .dots i:nth-child(2)::after{animation-delay:4s}.m-hero .dots i:nth-child(3)::after{animation-delay:9s}
-@keyframes mdot{0%{transform:scaleX(0);opacity:1}33%{transform:scaleX(1);opacity:1}38%{opacity:0}100%{transform:scaleX(1);opacity:0}}
+.m-hero .dots i::after{content:"";position:absolute;inset:0;background:#FBF8F2;transform-origin:0 50%;transform:scaleX(var(--f,0))}
 .phone:not(.m-ready) .m-in>*{opacity:0}
 .phone.m-ready .m-in>*{animation:mup .9s var(--ease-out) both}
 .phone.m-ready .m-in>:nth-child(2){animation-delay:.1s}.phone.m-ready .m-in>:nth-child(3){animation-delay:.2s}.phone.m-ready .m-in>:nth-child(4){animation-delay:.3s}.phone.m-ready .m-in>:nth-child(5){animation-delay:.4s}
@@ -424,9 +441,9 @@ footer{padding:56px 0 calc(48px + env(safe-area-inset-bottom));border-top:1px so
 
 @media (orientation:landscape){
   .phone .m-hero{min-height:100svh}
-  .phone .m-hero .s1{background-image:url(assets/seq/d/001.webp)}
-  .phone .m-hero .s2{background-image:url(assets/seq/d/170.webp)}
-  .phone .m-hero .s3{background-image:url(assets/hero-ending.jpg);background-position:70% 50%}
+  .phone .m-film{inset:0;aspect-ratio:auto;background-image:url(assets/seq/d/013.webp)}
+  .phone .m-film::after{background:linear-gradient(0deg,rgba(12,18,44,.92) 0%,rgba(12,18,44,.7) 34%,rgba(12,18,44,.15) 62%,rgba(12,18,44,.25) 100%)}
+  .phone .m-hero .m-in{margin-top:0;flex:none}
   .phone .m-hero h1{font-size:clamp(2rem,6vw,2.6rem)}
   .phone .m-hero p{max-width:48ch}
   .phone .m-hero .row{max-width:460px}
@@ -467,9 +484,10 @@ footer{padding:56px 0 calc(48px + env(safe-area-inset-bottom));border-top:1px so
 
 <header id="top">
 <section class="m-hero" aria-label="Welcome to Aro Cafe">
-  <div class="slide s1" aria-hidden="true"></div>
-  <div class="slide s2" aria-hidden="true"></div>
-  <div class="slide s3" aria-hidden="true"></div>
+  <div class="m-film" aria-hidden="true">
+    <video muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback tabindex="-1"></video>
+    <canvas></canvas>
+  </div>
   <div class="m-in">
     <span class="kick chip">MG Marg · Gangtok · Sikkim</span>
     <h1><em>Aro!</em> Pull up a chair.</h1>
@@ -701,14 +719,29 @@ footer{padding:56px 0 calc(48px + env(safe-area-inset-bottom));border-top:1px so
 </main>
 
 <footer>
-  <div class="wrap foot">
-    <div>
-      <span class="wordmark" aria-hidden="true">Aro cafe<svg class="bird" viewBox="0 0 40 14"><path d="M1 9c5-5 11-6 19 1 8-7 14-6 19-1-6-1-11 0-19 5C12 9 7 8 1 9z" fill="#1C2B78"/></svg></span>
-      <p class="small">Bar and Vibes. MG Marg, Gangtok, Sikkim. Open 9am to 9pm.</p>
+  <div class="wrap">
+    <div class="bye">
+      <svg class="gull" viewBox="0 0 40 14" aria-hidden="true"><path d="M1 9c5-5 11-6 19 1 8-7 14-6 19-1-6-1-11 0-19 5C12 9 7 8 1 9z" fill="#1C2B78"/></svg>
+      <p class="kicker rv">Until we meet</p>
+      <h2 class="rv">Thank you for stopping by. Now come say <em>Aro</em> in person.</h2>
+      <p class="lede rv">Do give us a visit. The door is open from 9am to 9pm, the coffee is on, and there is always a chair waiting for you. Bring a friend, or come and make one here.</p>
+      <div class="row rv">
+        <a class="btn btn-primary" href="https://www.google.com/maps/search/?api=1&amp;query=Aro+Cafe+MG+Marg+Gangtok" target="_blank" rel="noopener">Get directions</a>
+        <a class="btn btn-ghost" href="https://www.instagram.com/_aro.cafe_/" target="_blank" rel="noopener">Say hi on Instagram</a>
+      </div>
     </div>
-    <div>
-      <p><a href="https://www.instagram.com/_aro.cafe_/" target="_blank" rel="noopener">Instagram</a></p>
-      <p class="small">The mountain, cloud and pour footage and two scenic images were made with AI. Every photo of our cafe, food and team is real.</p>
+    <div class="foot">
+      <div class="where">
+        <span class="wordmark" aria-hidden="true">Aro cafe<svg class="bird" viewBox="0 0 40 14"><path d="M1 9c5-5 11-6 19 1 8-7 14-6 19-1-6-1-11 0-19 5C12 9 7 8 1 9z" fill="#1C2B78"/></svg></span>
+        <p>Bar and Vibes. MG Marg, Gangtok, Sikkim. Open 9am to 9pm.</p>
+      </div>
+      <ul>
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#day">Our day</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#visit">Visit us</a></li>
+      </ul>
+      <p class="small">&copy; 2026 Aro Cafe. Made with love in Gangtok. See you soon, friend.</p>
     </div>
   </div>
 </footer>
@@ -727,6 +760,15 @@ const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAl
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const smoothstep = (p, e0, e1) => { const t = clamp((p - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); };
 const mixv = (a, b, t) => a + (b - a) * t;
+// critically damped follow: no velocity jumps when the target moves (state = { v })
+function smoothDamp(cur, tgt, st, smoothTime, dt){
+  const om = 2 / smoothTime, x = om * dt, e = 1 / (1 + x + .48 * x * x + .235 * x * x * x);
+  const change = cur - tgt, tmp = (st.v + om * change) * dt;
+  st.v = (st.v - om * tmp) * e;
+  let out = tgt + (change + tmp) * e;
+  if ((tgt - cur > 0) === (out > tgt)) { out = tgt; st.v = 0; }
+  return out;
+}
 function rng(seed){ let s = seed >>> 0; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
 
 const reduceMQ = matchMedia('(prefers-reduced-motion: reduce)');
@@ -773,7 +815,7 @@ function updateCaptions(p){
     let k = clamp((p - a) / (bd.ramp || Math.min(0.025, (b - a) * .35)), 0, 1);
     if (i === 0) k = Math.max(k, loadK);
     if (Math.abs(op - bd.op) > .004 || (op === 0) !== (bd.op === 0) || (op === 1 && bd.op !== 1)) { bd.el.style.opacity = op.toFixed(3); bd.op = op; }
-    if (Math.abs(k - bd.k) > .008 || (k === 1 && bd.k !== 1) || (k === 0 && bd.k !== 0)) { bd.el.style.setProperty('--k', k.toFixed(3)); bd.k = k; }
+    if (Math.abs(k - bd.k) > .003 || (k === 1 && bd.k !== 1) || (k === 0 && bd.k !== 0)) { bd.el.style.setProperty('--k', k.toFixed(3)); bd.k = k; }
     const off = op < .02; if (off !== bd.off) { bd.el.classList.toggle('off', off); bd.off = off; }
   });
   const ch = p > .03; if (ch !== cueHidden) { cue.classList.toggle('hide', ch); cueHidden = ch; }
@@ -823,11 +865,9 @@ function startLoading(mode){
   for (let w = 0; w < (mode === 'm' ? 4 : 6); w++) worker();
   return coarse;
 }
-function nearest(i){
-  if (frames[i]) return i;
-  for (let d = 1; d < N; d++) { if (frames[i - d]) return i - d; if (frames[i + d]) return i + d; }
-  return -1;
-}
+// the loaded frames on either side of a position, so sparse (still loading) stretches cross-fade evenly
+function below(i){ for (; i >= 0; i--) if (frames[i]) return i; return -1; }
+function above(i){ for (; i < N; i++) if (frames[i]) return i; return -1; }
 
 /* ---------- WebGL stage (three.js) ---------- */
 let THREE = null, renderer, scene, cam, uni, puni, texA, texB, curA = -1, curB = -1, glOn = false, glBuilt = false;
@@ -838,7 +878,7 @@ async function buildGL(){
   try { renderer = new THREE.WebGLRenderer({ canvas: $('#gl'), antialias: false, alpha: false, powerPreference: 'high-performance' }); }
   catch (e) { return false; }
   renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
-  renderer.setPixelRatio(Math.min(devicePixelRatio, seqMode === 'm' ? 1.5 : 1.75));
+  renderer.setPixelRatio(1);
   scene = new THREE.Scene(); cam = new THREE.Camera();
   const mkTex = () => { const t = new THREE.Texture(); t.flipY = false; t.minFilter = THREE.LinearFilter; t.magFilter = THREE.LinearFilter; t.generateMipmaps = false; return t; };
   texA = mkTex(); texB = mkTex();
@@ -857,7 +897,7 @@ async function buildGL(){
       float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f*f*(3.-2.*f);
         return mix(mix(hash(i), hash(i+vec2(1,0)), u.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), u.x), u.y); }
-      float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 5; i++){ v += a*noise(p); p = p*2.03 + 7.1; a *= .5; } return v; }
+      float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 4; i++){ v += a*noise(p); p = p*2.03 + 7.1; a *= .5; } return v; }
       vec2 cover(vec2 uv){ float rs = uRes.x/uRes.y, ri = uImg.x/uImg.y;
         vec2 s = rs > ri ? vec2(1., ri/rs) : vec2(rs/ri, 1.); return (uv - .5)*s + .5; }
       vec3 samp(vec2 uv){ return mix(texture2D(tA, uv).rgb, texture2D(tB, uv).rgb, uMix); }
@@ -867,12 +907,15 @@ async function buildGL(){
         uv.y = 1. - uv.y;
         vec2 dir = uv - .5;
         float ca = uVel * .012;
-        vec3 col = vec3(samp(uv + dir*ca).r, samp(uv).g, samp(uv - dir*ca).b);
-        vec2 q = vUv*vec2(uRes.x/uRes.y, 1.)*1.6;
-        float n = fbm(q + vec2(uTime*.015, -uFlow - uTime*.03));
-        float n2 = fbm(q*1.7 - vec2(uTime*.02, uFlow*1.4));
-        float m = smoothstep(.38, .9, n*.65 + n2*.45);
-        col = mix(col, vec3(.965, .955, .94), clamp(uMist*m, 0., .9));
+        vec3 col = samp(uv);
+        if (abs(ca) > .0004) col = vec3(samp(uv + dir*ca).r, col.g, samp(uv - dir*ca).b);
+        if (uMist > .004) {
+          vec2 q = vUv*vec2(uRes.x/uRes.y, 1.)*1.6;
+          float n = fbm(q + vec2(uTime*.015, -uFlow - uTime*.03));
+          float n2 = fbm(q*1.7 - vec2(uTime*.02, uFlow*1.4));
+          float m = smoothstep(.38, .9, n*.65 + n2*.45);
+          col = mix(col, vec3(.965, .955, .94), clamp(uMist*m, 0., .9));
+        }
         float vig = smoothstep(1.25, .35, length((vUv - .5)*vec2(uRes.x/uRes.y, 1.)));
         col *= mix(.8, 1., vig);
         col += (hash(vUv*uRes + fract(uTime)*100.) - .5)*.03;
@@ -909,30 +952,52 @@ async function buildGL(){
   glBuilt = true; sizeGL(true);
   return true;
 }
-let lastW = 0, lastH = 0;
+let lastW = 0, lastH = 0, quality = 1;
+// the footage is 720p: drawing more than ~2.3 million pixels only costs frames
+function pixelRatio(w, h){ return Math.max(.6, Math.min(devicePixelRatio, 1.75, Math.sqrt(2.3e6 / Math.max(1, w * h))) * quality); }
 function sizeGL(force){
   if (!glBuilt) return;
   const wrap = $('.glwrap'), w = wrap.clientWidth, h = wrap.clientHeight;
   if (!force && w === lastW && Math.abs(h - lastH) < 120) return;   // ignore phone toolbar wobble
   lastW = w; lastH = h;
+  const pr = pixelRatio(w, h);
+  renderer.setPixelRatio(pr);
   renderer.setSize(w, h, false);
-  uni.uRes.value.set(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
+  uni.uRes.value.set(w * pr, h * pr);
+  puni.uPR.value = pr;
+}
+// if this machine cannot hold the frame rate, trade a little sharpness for it. Judged on the median of
+// 90 settled frames; a step down that buys nothing (a 30Hz or power-throttled screen) is undone.
+let paceBuf = [], paceBase = 0, paceUndo = 0, paceOff = false, paceSkip = 120;
+function watchPace(dt){
+  if (paceOff || document.hidden || loaded < N * .98) return;
+  if (paceSkip > 0) { paceSkip--; return; }
+  if (dt > 100) { paceBuf.length = 0; return; }       // a long gap is a hidden tab or a stall, not the GPU
+  paceBuf.push(dt); if (paceBuf.length < 90) return;
+  const med = paceBuf.sort((x, y) => x - y)[45]; paceBuf = [];
+  if (paceUndo) {
+    if (med > paceBase * .88) { quality = paceUndo; paceOff = true; sizeGL(true); return; }
+    paceUndo = 0;
+  }
+  if (med > 21 && quality > .62) { paceBase = med; paceUndo = quality; quality = Math.max(.6, quality * .8); paceSkip = 20; sizeGL(true); }
 }
 function setFrames(f){
-  const i0 = Math.floor(f), i1 = Math.min(N - 1, i0 + 1);
-  const a = nearest(i0), b = nearest(i1);
+  const i0 = Math.floor(f);
+  let a = below(i0), b = above(Math.min(N - 1, i0 + 1));
+  if (a < 0) a = b; if (b < 0) b = a;
   if (a < 0) return false;
   if (a !== curA) {
     if (a === curB) { [texA, texB] = [texB, texA]; [curA, curB] = [curB, curA]; uni.tA.value = texA; uni.tB.value = texB; }
     else { texA.image = frames[a]; texA.needsUpdate = true; curA = a; }
   }
   if (b !== curB) { texB.image = frames[b]; texB.needsUpdate = true; curB = b; }
-  uni.uMix.value = a === b ? 0 : clamp(f - i0, 0, 1);
+  uni.uMix.value = a === b ? 0 : clamp((f - a) / (b - a), 0, 1);
   return true;
 }
 
 /* ---------- the drive loop ---------- */
-let target = 0, shown = 0, vel = 0, tmx = 0, tmy = 0, mx = 0, my = 0, heroVisible = true, settleShift = -1;
+let target = 0, shown = 0, vel = 0, tmx = 0, tmy = 0, mx = 0, my = 0, heroVisible = true, settleShift = -1, heroPx = 1;
+const follow = { v: 0 };
 const glwrap = $('.glwrap'), shade = $('.shade');
 function look(p){
   // mist swells at the two cloud crossings; particles change character by chapter
@@ -945,10 +1010,15 @@ function look(p){
 }
 function tick(time, deltaMs){
   if (!glOn || !heroVisible) return;
-  const dt = Math.min(64, deltaMs || 16.7), k = 1 - Math.pow(1 - .14, dt / 16.667);
-  shown += (target - shown) * k; if (Math.abs(target - shown) < 1e-5) shown = target;
-  vel *= Math.pow(.88, dt / 16.667);
-  mx += (tmx - mx) * .05; my += (tmy - my) * .05;
+  const dt = Math.min(64, deltaMs || 16.7), fr = dt / 16.667;
+  watchPace(deltaMs || 16.7);
+  shown = clamp(smoothDamp(shown, target, follow, .17, dt / 1000), 0, 1);
+  if (Math.abs(target - shown) < 1e-5 && Math.abs(follow.v) < 1e-4) { shown = target; follow.v = 0; }
+  // speed of the film itself, in screen heights a second, eased so the lens effect swells and settles
+  vel += (clamp(follow.v * heroPx / 1500, -1, 1) - vel) * (1 - Math.pow(.88, fr));
+  if (Math.abs(vel) < 1e-4) vel = 0;
+  const mk = 1 - Math.pow(.95, fr);
+  mx += (tmx - mx) * mk; my += (tmy - my) * mk;
   if (!setFrames(shown * (N - 1))) return;
   uni.uTime.value = time; puni.uTime.value = time;
   uni.uVel.value = vel; uni.uMouse.value.set(mx, my);
@@ -975,11 +1045,11 @@ function playIntro(){
 function rampBandOne(){ const o = { v: 0 }; gsap.to(o, { v: 1, duration: 1.4, ease: 'power2.out', onUpdate(){ loadK = o.v; updateCaptions(shown); } }); }
 
 /* ---------- smooth scroll + scroll triggers ---------- */
-let lenis = null, ctx = null, heroST = null;
+let lenis = null, ctx = null, heroST = null, echoCleanup = null;
 const lenisRaf = t => lenis && lenis.raf(t * 1000);
 function startLenis(){
   if (lenis) return;
-  lenis = new Lenis({ lerp: .085, smoothWheel: true, wheelMultiplier: .9 });
+  lenis = new Lenis({ lerp: .075, smoothWheel: true, wheelMultiplier: .9 });
   lenis.on('scroll', ScrollTrigger.update);
   gsap.ticker.add(lenisRaf);
   gsap.ticker.lagSmoothing(0);
@@ -989,26 +1059,35 @@ function stopLenis(){ if (!lenis) return; gsap.ticker.remove(lenisRaf); lenis.de
 function initHeroTriggers(){
   heroST = ScrollTrigger.create({
     trigger: '#hero', start: 'top top', end: 'bottom bottom',
-    onUpdate(s){ target = s.progress; vel = clamp(vel + s.getVelocity() / 9000, -1, 1); }
+    onUpdate(s){ target = s.progress; },
+    onRefresh(s){ heroPx = Math.max(1, s.end - s.start); target = s.progress; }
   });
   new IntersectionObserver(es => { heroVisible = es[0].isIntersecting; }).observe($('#hero'));
 }
 
 function initSections(){
   ctx = gsap.context(() => {
-    gsap.utils.toArray('.rv').forEach(el => gsap.from(el, { y: 36, opacity: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 88%' } }));
+    gsap.utils.toArray('.rv').forEach(el => gsap.from(el, { y: 30, opacity: 0, duration: 1.25, ease: 'power3.out', force3D: true, scrollTrigger: { trigger: el, start: 'top 88%' } }));
 
     // the echo marquee: speed follows scroll velocity, direction follows scroll direction
     const r1 = gsap.to('.echo .r1', { xPercent: -50, duration: 26, ease: 'none', repeat: -1 });
     const r2 = gsap.fromTo('.echo .r2', { xPercent: -50 }, { xPercent: 0, duration: 30, ease: 'none', repeat: -1 });
-    const boost = { v: 1 }; let dir = 1;
-    const apply = () => { r1.timeScale(boost.v * dir); r2.timeScale(boost.v * dir); };
-    ScrollTrigger.create({ trigger: '.echo', start: 'top bottom', end: 'bottom top', onUpdate(s){
-      dir = s.direction;
-      gsap.timeline({ overwrite: true })
-        .to(boost, { v: 1 + Math.min(4, Math.abs(s.getVelocity()) / 400), duration: .2, onUpdate: apply })
-        .to(boost, { v: 1, duration: 1.2, ease: 'power2.out', onUpdate: apply });
-    }});
+    r1.totalTime(26 * 400); r2.totalTime(30 * 400);
+    // one eased value carries both speed and direction, so a change of direction glides through zero
+    let want = 1, cur = 1, dir = 1, echoOn = false;
+    const echoTick = (t, dms) => {
+      if (!echoOn) return;
+      const fr = Math.min(64, dms || 16.7) / 16.667;
+      want += (dir - want) * (1 - Math.pow(.955, fr));        // the boost drains back to cruising speed
+      cur += (want - cur) * (1 - Math.pow(.9, fr));
+      r1.timeScale(cur); r2.timeScale(cur);
+    };
+    gsap.ticker.add(echoTick);
+    ScrollTrigger.create({ trigger: '.echo', start: 'top bottom', end: 'bottom top',
+      onToggle(s){ echoOn = s.isActive; },
+      onUpdate(s){ dir = s.direction || 1; const b = dir * (1 + Math.min(4, Math.abs(s.getVelocity()) / 400)); if (Math.abs(b) > Math.abs(want) || b * want < 0) want = b; }
+    });
+    echoCleanup = () => gsap.ticker.remove(echoTick);
 
     // the name: gull flies its path, words fill in as you read
     const trail = $('#name .trail'), len = trail.getTotalLength();
@@ -1031,23 +1110,23 @@ function initSections(){
       });
       walk(bq);
     }
-    gsap.fromTo('#name .fw', { opacity: .14 }, { opacity: 1, stagger: .1, ease: 'none', scrollTrigger: { trigger: bq, start: 'top 80%', end: 'bottom 45%', scrub: true } });
+    gsap.fromTo('#name .fw', { opacity: .14 }, { opacity: 1, stagger: .1, ease: 'none', scrollTrigger: { trigger: bq, start: 'top 80%', end: 'bottom 45%', scrub: .4 } });
 
     // menu tiles rise in, photos drift inside their frames
-    gsap.from('.tile', { y: 60, opacity: 0, duration: 1.1, ease: 'expo.out', stagger: .08, scrollTrigger: { trigger: '.bento', start: 'top 85%' } });
-    gsap.utils.toArray('.tile .ph img').forEach(img => gsap.fromTo(img, { yPercent: -6 }, { yPercent: 6, ease: 'none', scrollTrigger: { trigger: img.closest('.tile'), start: 'top bottom', end: 'bottom top', scrub: true } }));
+    gsap.from('.tile', { y: 48, opacity: 0, duration: 1.3, ease: 'power3.out', stagger: .09, force3D: true, scrollTrigger: { trigger: '.bento', start: 'top 85%' } });
+    gsap.utils.toArray('.tile .ph img').forEach(img => gsap.fromTo(img, { yPercent: -6 }, { yPercent: 6, ease: 'none', force3D: true, scrollTrigger: { trigger: img.closest('.tile'), start: 'top bottom', end: 'bottom top', scrub: .5 } }));
 
     // the day: the path draws as the hours pass
     $$('.timeline svg path').forEach(p => {
       const l = p.getTotalLength() || 1;
       gsap.fromTo(p, { strokeDasharray: l, strokeDashoffset: l }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: '.timeline', start: 'top 80%', end: 'bottom 60%', scrub: 1 } });
     });
-    gsap.from('.step', { y: 40, opacity: 0, duration: 1, ease: 'expo.out', stagger: .12, scrollTrigger: { trigger: '.steps', start: 'top 82%' } });
+    gsap.from('.step', { y: 36, opacity: 0, duration: 1.2, ease: 'power3.out', stagger: .12, scrollTrigger: { trigger: '.steps', start: 'top 82%' } });
     gsap.from('.step .ico', { scale: .4, duration: 1.2, ease: 'elastic.out(1,.55)', stagger: .12, scrollTrigger: { trigger: '.steps', start: 'top 82%' } });
 
     // the team: two photos, two speeds
-    gsap.fromTo('.team-photos .main', { y: 40 }, { y: -30, ease: 'none', scrollTrigger: { trigger: '#team', start: 'top bottom', end: 'bottom top', scrub: true } });
-    gsap.fromTo('.team-photos .side', { y: 120, rotate: 9 }, { y: -40, rotate: 0, ease: 'none', scrollTrigger: { trigger: '#team', start: 'top bottom', end: 'bottom top', scrub: true } });
+    gsap.fromTo('.team-photos .main', { y: 40 }, { y: -30, ease: 'none', force3D: true, scrollTrigger: { trigger: '#team', start: 'top bottom', end: 'bottom top', scrub: .5 } });
+    gsap.fromTo('.team-photos .side', { y: 120, rotate: 9 }, { y: -40, rotate: 0, ease: 'none', force3D: true, scrollTrigger: { trigger: '#team', start: 'top bottom', end: 'bottom top', scrub: .5 } });
     $$('[data-count]').forEach(el => {
       const to = +el.dataset.count, o = { v: 0 };
       gsap.to(o, { v: to, duration: 1.8, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%' }, onUpdate(){ el.textContent = Math.round(o.v).toLocaleString('en-IN') + (el.dataset.suffix || ''); } });
@@ -1061,7 +1140,7 @@ function initSections(){
     }));
 
     // visit: the night view settles in
-    gsap.fromTo('.visit-card .bg', { scale: 1.22 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.visit-card', start: 'top bottom', end: 'bottom bottom', scrub: true } });
+    gsap.fromTo('.visit-card .bg', { scale: 1.22 }, { scale: 1, ease: 'none', force3D: true, scrollTrigger: { trigger: '.visit-card', start: 'top bottom', end: 'bottom bottom', scrub: .5 } });
 
     // nav tucks away on the way down, returns on the way up
     const nav = $('.nav'); let tucked = false;
@@ -1114,7 +1193,7 @@ document.addEventListener('click', e => {
   const id = a.getAttribute('href'); if (id.length < 2) return;
   const el = document.querySelector(id); if (!el) return;
   e.preventDefault();
-  if (lenis) lenis.scrollTo(id === '#top' ? 0 : el, { duration: 1.6 });
+  if (lenis) lenis.scrollTo(id === '#top' ? 0 : el, { duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) });
   else el.scrollIntoView();
   if (id === '#main') el.focus({ preventScroll: true });
 });
@@ -1139,21 +1218,162 @@ async function motionOn(){
   glOn = true; curA = curB = -1; settleShift = -1;
   if (!tick.added) { gsap.ticker.add(tick); tick.added = true; }
   ScrollTrigger.refresh();
-  target = shown = heroST.progress;
+  target = shown = heroST.progress; follow.v = 0;
   if ($('.intro')) playIntro(); else { loadK = 1; updateCaptions(shown); }
 }
 function motionOff(){
   R.classList.add('rm');
   glOn = false; stopLenis();
   if (ctx) { ctx.revert(); ctx = null; }
+  if (echoCleanup) { echoCleanup(); echoCleanup = null; }
   $('.nav').classList.remove('tucked');
   const i = $('.intro'); if (i) i.remove();
   if (libsOk) ScrollTrigger.refresh();
 }
 const phoneMQ = matchMedia('(max-width: 600px), (pointer: coarse) and (max-height: 500px)');
 phoneMQ.addEventListener('change', () => location.reload());   // crossing phone and larger screens rebuilds cleanly
+
+/* ---------- phone hero film: always moving ----------
+   A muted looping video is the first choice. Phones in low power or battery saver mode can refuse
+   to autoplay video, so when that happens the same film is drawn frame by frame onto a canvas
+   (images are never blocked), and the first tap hands back over to the real video in place. */
+const CLIP = 691, HEAD = 24, VFRAMES = CLIP - HEAD, VFPS = 24;   // master frames, frames folded into the loop seam
+function framePlayer(cv, mode, from){
+  // portrait shows a square window of the wide frames, drifting right to keep the cup in view (same as the video)
+  const [sw, h] = DIMS.d, w = mode === 'm' ? h : sw; cv.width = w; cv.height = h;
+  const sx = i => mode === 'm' ? 280 + 186.7 * smoothstep(i * 2, 450, 630) : 0;
+  const g = cv.getContext('2d', { alpha: false });
+  const imgs = new Array(N), FPS = 12, FADE = 1, RUN = (N - 1) / FPS, LEN = RUN + FADE;
+  let got = 0, qi = 0, t = HEAD / 2 / FPS, last = 0, raf = 0, dead = false, running = false, drawn = -1, started = false, seen = false;
+  if (from > 0) t = Math.min(RUN, (from * VFPS + HEAD) % CLIP / 2 / FPS);   // carry on from where the video stopped
+  const first = Math.floor(t * FPS);                                         // frames arrive in playing order from here
+  const pump = async () => {
+    while (!dead && qi < N) {
+      const i = (first + qi++) % N, img = new Image(); img.decoding = 'async';
+      img.src = `assets/seq/d/${String(i + 1).padStart(3, '0')}.webp`;
+      try { await img.decode(); imgs[i] = img; } catch (_) { imgs[i] = false; }
+      got++;
+    }
+  };
+  for (let n = 0; n < 4; n++) pump();
+  const pick = i => { for (let n = 0; n < N; n++) { const im = imgs[(i - n + N) % N]; if (im) return im; } return null; };
+  const step = now => {
+    raf = 0; if (dead || !running) return;
+    const dt = Math.min(100, now - (last || now)) / 1000; last = now;
+    if (!started) started = got >= Math.min(N, 30);            // a short buffer before the first frame moves
+    else {
+      const nt = t + dt;                                        // never run past what has arrived
+      if (nt >= LEN) t = nt - LEN;
+      else if (imgs[nt < RUN ? Math.min(N - 1, Math.floor(nt * FPS) + 1) : 0] !== undefined) t = nt;
+    }
+    let a, b, mix;
+    if (t < RUN) { const f = t * FPS; a = Math.floor(f); b = Math.min(N - 1, a + 1); mix = f - a; }
+    else { a = N - 1; b = 0; const k = (t - RUN) / FADE; mix = k * k * (3 - 2 * k); }
+    const key = a + mix;
+    if (key !== drawn) {
+      const ia = pick(a), ib = pick(b);
+      if (ia) {
+        g.globalAlpha = 1; g.drawImage(ia, sx(a), 0, w, h, 0, 0, w, h);
+        if (ib && ib !== ia && mix > .01) { g.globalAlpha = mix; g.drawImage(ib, sx(b), 0, w, h, 0, 0, w, h); }
+        drawn = key; if (!seen) { seen = true; cv.classList.add('on'); }
+      }
+    }
+    raf = requestAnimationFrame(step);
+  };
+  return {
+    play(){ if (dead || running) return; running = true; last = 0; raf = requestAnimationFrame(step); },
+    pause(){ running = false; if (raf) cancelAnimationFrame(raf); raf = 0; },
+    stop(){ this.pause(); dead = true; imgs.length = 0; },
+    // where the real video should pick up, in its own seconds
+    videoTime(){ const mf = Math.min(RUN, t) * FPS * 2; return (((mf - HEAD) % VFRAMES) + VFRAMES) % VFRAMES / VFPS; },
+    progress(){ return Math.min(1, t / RUN); }
+  };
+}
+function phoneFilm(){
+  const hero = $('.m-hero'), vid = $('.m-film video'), cv = $('.m-film canvas'), dots = $$('.m-hero .dots i');
+  const landscape = () => innerWidth > innerHeight;
+  let mode = null, fb = null, onVideo = false, inView = true, gen = 0, retryBound = false, dotRaf = 0, dotP = -1;
+  vid.muted = true; vid.defaultMuted = true; vid.loop = true; vid.playsInline = true;
+  const active = () => inView && !document.hidden;
+  const framesOnly = /[?&]film=frames/.test(location.search);   // preview the low power path on any device
+
+  function videoStarted(g){
+    if (g !== gen) return;
+    onVideo = true;
+    const swap = () => { if (g !== gen || !onVideo) return; vid.classList.add('on'); if (fb) { const old = fb; fb = null; cv.classList.remove('on'); setTimeout(() => old.stop(), 700); } };
+    if (vid.requestVideoFrameCallback) vid.requestVideoFrameCallback(swap);
+    setTimeout(swap, 400);
+    if (!active()) vid.pause();
+  }
+  function tryVideo(){
+    const g = gen; let pr;
+    if (framesOnly) return fallback();
+    try { pr = vid.play(); } catch (_) { return fallback(); }
+    if (pr && pr.then) pr.then(() => videoStarted(g)).catch(e => { if (g === gen && !(e && e.name === 'AbortError')) fallback(); });
+    // some browsers neither play nor refuse: paused with no promise settled means autoplay is off
+    setTimeout(() => { if (g === gen && !onVideo && vid.paused && active()) fallback(); }, 2500);
+  }
+  function fallback(from){
+    if (onVideo || fb) return;
+    fb = framePlayer(cv, mode, from);
+    if (active()) fb.play();
+    if (!retryBound && !framesOnly) {
+      retryBound = true;
+      // a tap is permission to play: hand the film back to the real video where the frames left off
+      const retry = () => {
+        if (onVideo || !fb) return;
+        const g = gen, at = fb.videoTime();
+        const seek = () => { try { vid.currentTime = at; } catch (_) {} };
+        if (vid.readyState >= 1) seek(); else vid.addEventListener('loadedmetadata', seek, { once: true });
+        const pr = vid.play();
+        if (pr && pr.then) pr.then(() => videoStarted(g)).catch(() => {});
+      };
+      ['touchend', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, retry, { passive: true }));
+    }
+  }
+  function load(){
+    const m = landscape() ? 'd' : 'm';
+    if (m === mode) return;
+    const at = onVideo ? vid.currentTime : 0;
+    mode = m; gen++; onVideo = false;
+    if (fb) { fb.stop(); fb = null; }
+    vid.classList.remove('on'); cv.classList.remove('on');
+    vid.src = `assets/hero-loop-${m}.mp4`;
+    if (at) vid.addEventListener('loadedmetadata', () => { try { vid.currentTime = at; } catch (_) {} }, { once: true });
+    vid.load();
+    tryVideo();
+  }
+  function setActive(){
+    if (active()) {
+      if (onVideo) { const g = gen, pr = vid.play(); if (pr && pr.catch) pr.catch(e => { if (g === gen && !(e && e.name === 'AbortError')) { onVideo = false; vid.classList.remove('on'); fallback(vid.currentTime); } }); }
+      else if (fb) fb.play();
+      else tryVideo();
+      if (!dotRaf) dotRaf = requestAnimationFrame(dotStep);
+    } else { if (onVideo) vid.pause(); if (fb) fb.pause(); }
+  }
+  // the three bars under the buttons follow the film: peaks, Gangtok, your cup
+  function dotStep(){
+    dotRaf = 0; if (!active()) return;
+    let p = -1;
+    if (onVideo && vid.duration) p = ((vid.currentTime * VFPS + HEAD) % CLIP) / CLIP;
+    else if (fb) p = fb.progress();
+    if (p >= 0 && Math.abs(p - dotP) > .002) { dotP = p; dots.forEach((d, i) => d.style.setProperty('--f', clamp(p * 3 - i, 0, 1).toFixed(3))); }
+    dotRaf = requestAnimationFrame(dotStep);
+  }
+  // if the system pauses the video behind our back (power mode switched on mid-visit), keep the film moving
+  vid.addEventListener('pause', () => { if (onVideo && active() && !vid.ended) setTimeout(() => { if (onVideo && active() && vid.paused) setActive(); }, 250); });
+  vid.addEventListener('ended', () => { vid.currentTime = 0; setActive(); });
+  vid.addEventListener('error', () => { if (!onVideo) fallback(); });
+  new IntersectionObserver(es => { inView = es[0].isIntersecting; setActive(); }, { threshold: .02 }).observe(hero);
+  document.addEventListener('visibilitychange', setActive);
+  addEventListener('pageshow', setActive);
+  let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(load, 200); });
+  load();
+  dotRaf = requestAnimationFrame(dotStep);
+}
 function phoneInit(){
   R.classList.add('phone');
+  phoneFilm();
   // splash: show the wordmark while the first photo arrives, then lift the curtain
   const intro = $('.intro');
   const ready = () => R.classList.add('m-ready');
@@ -1161,7 +1381,7 @@ function phoneInit(){
   else {
     const t0 = performance.now();
     const firstPhoto = new Promise(res => {
-      const url = getComputedStyle($('.m-hero .s1')).backgroundImage.replace(/^url\(["']?|["']?\)$/g, '');
+      const url = getComputedStyle($('.m-film')).backgroundImage.replace(/^url\(["']?|["']?\)$/g, '');
       const img = new Image(); img.onload = img.onerror = res; img.src = url;
     });
     const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
@@ -1174,7 +1394,7 @@ function phoneInit(){
       }, Math.max(0, 1200 - (performance.now() - t0)));
     });
   }
-  const els = $$('#main .rv, #main blockquote, #main .tile, #main .step, #main .team-photos, #main .pola, #main .hello-card, #main .faq-list details, #main .visit-card');
+  const els = $$('#main .rv, #main blockquote, #main .tile, #main .step, #main .team-photos, #main .pola, #main .hello-card, #main .faq-list details, #main .visit-card, footer .rv');
   if (!reduceMQ.matches) {
     els.forEach(el => el.classList.add('m-rv'));
     const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } }), { rootMargin: '0px 0px -8% 0px' });
