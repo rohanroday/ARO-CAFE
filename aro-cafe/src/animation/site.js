@@ -48,6 +48,11 @@ export function initSite(){
 
   /* ---------- frame sequence: loaded coarse-to-fine ---------- */
   let seqMode = null, frames = [], loaded = 0, loadGen = 0, coarseN = 0;
+  // phones ("lean"): a decoded frame is about 2MB of memory, so only the frames around the current position
+  // stay decoded; the rest wait as small compressed files. Every 24th frame is always kept as a safety net.
+  let lean = false, blobs = [];
+  const pending = new Set(), live = new Set(), NEAR = 16;
+  const isCoarse = i => i % 24 === 0 || i === N - 1;
   const pickMode = () => (innerWidth / innerHeight < 0.9 ? 'm' : 'd');
   function loadOrder(n){
     const seen = new Set(), out = [];
@@ -59,12 +64,17 @@ export function initSite(){
     return out;
   }
   async function decode(blob){
-    if ('createImageBitmap' in window) { try { return await createImageBitmap(blob); } catch (_) {} }
+    if ('createImageBitmap' in window) {
+      // decoded the way WebGL wants it, so handing a frame to the GPU is a straight copy with no conversion pass
+      try { return await createImageBitmap(blob, { premultiplyAlpha: 'none' }); } catch (_) {}
+      try { return await createImageBitmap(blob); } catch (_) {}
+    }
     const img = new Image(); img.src = URL.createObjectURL(blob); await img.decode(); return img;
   }
   function startLoading(mode){
     seqMode = mode; loadGen++; const gen = loadGen;
     frames = new Array(N); loaded = 0;
+    blobs = new Array(N); pending.clear(); live.clear();
     const q = loadOrder(N); let qi = 0, failures = 0;
     let resolveCoarse; const coarse = new Promise(r => resolveCoarse = r);
     const worker = async () => {
@@ -73,9 +83,13 @@ export function initSite(){
         try {
           const res = await fetch(`${ASSETS}/seq/${mode}/${String(i + 1).padStart(3, '0')}.webp`);
           if (!res.ok) throw new Error(res.status);
-          const img = await decode(await res.blob());
-          if (gen !== loadGen) { img.close && img.close(); return; }
-          frames[i] = img; loaded++;
+          const blob = await res.blob();
+          if (lean && !isCoarse(i)) { if (gen !== loadGen) return; blobs[i] = blob; loaded++; }
+          else {
+            const img = await decode(blob);
+            if (gen !== loadGen) { img.close && img.close(); return; }
+            frames[i] = img; loaded++;
+          }
         } catch (e) { failures++; if (i === 0) resolveCoarse(false); }
         if (loaded + failures >= coarseN) resolveCoarse(loaded > 0);
         introProgress(Math.min(1, loaded / coarseN));
@@ -83,6 +97,37 @@ export function initSite(){
     };
     for (let w = 0; w < (mode === 'm' ? 4 : 6); w++) worker();
     return coarse;
+  }
+  // Decode what the film is about to show (f = frame on screen, tf = frame the scroll is heading for).
+  // The window leans toward where the thumb is going, and during a fast flick only every 2nd or 3rd
+  // frame is decoded: the cross-fade bridges the gaps, so the decoder keeps up instead of falling behind.
+  function keepNear(f, tf){
+    const c = Math.round(f), gap = tf - f, dist = Math.abs(gap);
+    const dir = dist > 1.5 ? Math.sign(gap) : 0;
+    const stride = dist > 40 ? 3 : dist > 16 ? 2 : 1;
+    const ahead = dir ? Math.min(60, Math.ceil(dist) + 10) : NEAR, behind = dir ? 8 : NEAR;
+    for (const i of live) {
+      const rel = dir ? (i - c) * dir : Math.abs(i - c);
+      if ((rel > ahead + 14 || rel < -(behind + 14)) && i !== curA && i !== curB) { const im = frames[i]; frames[i] = undefined; live.delete(i); im && im.close && im.close(); }
+    }
+    // returns false once the decoder is busy, which ends this round
+    const want = i => {
+      if (i < 0 || i >= N || frames[i] || pending.has(i) || !blobs[i]) return true;
+      if (pending.size >= 3) return false;
+      pending.add(i); const gen = loadGen;
+      decode(blobs[i]).then(img => {
+        pending.delete(i);
+        if (gen !== loadGen || frames[i]) { img.close && img.close(); return; }
+        frames[i] = img; live.add(i);
+      }, () => pending.delete(i));
+      return true;
+    };
+    if (dir) {
+      const base = Math.round(c / stride) * stride;
+      for (let k = 0; k * stride <= ahead; k++) if (!want(base + dir * k * stride)) return;
+      if (stride > 1) return;                                   // flicking: no decodes spent on in-between frames
+      for (let d = 1; d <= behind; d++) if (!want(c - dir * d)) return;
+    } else for (let d = 0; d <= NEAR; d++) { if (!want(c + d) || !want(c - d)) return; }
   }
   // the loaded frames on either side of a position, so sparse (still loading) stretches cross-fade evenly
   function below(i){ for (; i >= 0; i--) if (frames[i]) return i; return -1; }
@@ -132,7 +177,7 @@ export function initSite(){
   }
   let lastW = 0, lastH = 0, quality = 1;
   // the footage is 720p: drawing more than ~2.3 million pixels only costs frames
-  function pixelRatio(w, h){ return Math.max(.6, Math.min(devicePixelRatio, 1.75, Math.sqrt(2.3e6 / Math.max(1, w * h))) * quality); }
+  function pixelRatio(w, h){ return Math.max(.6, Math.min(devicePixelRatio, lean ? 1.5 : 1.75, Math.sqrt(2.3e6 / Math.max(1, w * h))) * quality); }
   function sizeGL(force){
     if (!glBuilt) return;
     const wrap = $('.glwrap'), w = wrap.clientWidth, h = wrap.clientHeight;
@@ -190,6 +235,8 @@ export function initSite(){
     if (!glOn || !heroVisible) return;
     const dt = Math.min(64, deltaMs || 16.7), fr = dt / 16.667;
     watchPace(deltaMs || 16.7);
+    // phones: read the scroll position fresh every frame; touch scroll events arrive in uneven bursts
+    if (lean && heroST) target = clamp((scrollY - heroST.start) / heroPx, 0, 1);
     shown = clamp(smoothDamp(shown, target, follow, .17, dt / 1000), 0, 1);
     if (Math.abs(target - shown) < 1e-5 && Math.abs(follow.v) < 1e-4) { shown = target; follow.v = 0; }
     // speed of the film itself, in screen heights a second, eased so the lens effect swells and settles
@@ -197,6 +244,7 @@ export function initSite(){
     if (Math.abs(vel) < 1e-4) vel = 0;
     const mk = 1 - Math.pow(.95, fr);
     mx += (tmx - mx) * mk; my += (tmy - my) * mk;
+    if (lean) keepNear(shown * (N - 1), target * (N - 1));
     if (!setFrames(shown * (N - 1))) return;
     uni.uTime.value = time; puni.uTime.value = time;
     uni.uVel.value = vel; uni.uMouse.value.set(mx, my);
@@ -377,13 +425,36 @@ export function initSite(){
   }
   const phoneMQ = matchMedia('(max-width: 600px), (pointer: coarse) and (max-height: 500px)');
   phoneMQ.addEventListener('change', () => location.reload());   // crossing phone and larger screens rebuilds cleanly
+  // portrait phones scroll through the film just like larger screens (native touch scrolling, no Lenis)
+  async function phoneJourney(){
+    lean = true;
+    ScrollTrigger.config({ ignoreMobileResize: true });   // the address bar sliding away is not a resize
+    initHeroTriggers();
+    const coarse = startLoading(pickMode());
+    const ok = await buildGL();
+    const first = ok && await Promise.race([coarse, new Promise(r => setTimeout(() => r(!!frames[0]), 7000))]);
+    if (!first || !frames[0]) { loadGen++; heroST.kill(); heroST = null; R.classList.remove('journey'); return false; }
+    glOn = true; curA = curB = -1; settleShift = -1;
+    if (!tick.added) { gsap.ticker.add(tick); tick.added = true; }
+    ScrollTrigger.refresh();
+    target = shown = heroST.progress; follow.v = 0;
+    return true;
+  }
   function phoneInit(){
     R.classList.add('phone');
-    phoneFilm();
-    // splash: show the wordmark while the first photo arrives, then lift the curtain
+    // upright phones get the scroll journey; sideways phones, and phones without WebGL, get the looping film
+    const upright = innerHeight > innerWidth;
+    let journey = null, journeyOn = false;
+    if (upright) {
+      R.classList.add('journey');
+      R.classList.remove('rm');   // battery savers report "reduce motion"; the film should still follow the thumb
+      matchMedia('(orientation: portrait)').addEventListener('change', () => location.reload());
+      journey = phoneJourney().then(on => { journeyOn = on; if (!on) { phoneFilm(); watchHero($('.m-hero')); } });
+    } else phoneFilm();
+    // splash: show the wordmark while the first picture arrives, then lift the curtain
     const intro = $('.intro');
-    const ready = () => R.classList.add('m-ready');
-    if (reduceMQ.matches || !intro) { if (intro) intro.remove(); ready(); }
+    const ready = () => { R.classList.add('m-ready'); if (journeyOn) rampBandOne(); };
+    if ((reduceMQ.matches && !upright) || !intro) { if (intro) intro.remove(); ready(); }
     else {
       const t0 = performance.now();
       const firstPhoto = new Promise(res => {
@@ -391,7 +462,8 @@ export function initSite(){
         const img = new Image(); img.onload = img.onerror = res; img.src = url;
       });
       const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
-      Promise.race([Promise.all([firstPhoto, fonts]), new Promise(r => setTimeout(r, 3000))]).then(() => {
+      const soon = p => Promise.race([p, new Promise(r => setTimeout(r, 3000))]);
+      (journey ? Promise.all([journey, soon(fonts)]) : soon(Promise.all([firstPhoto, fonts]))).then(() => {
         setTimeout(() => {
           intro.classList.add('lift');
           setTimeout(ready, 450);
@@ -407,11 +479,13 @@ export function initSite(){
       els.forEach(el => io.observe(el));
     }
     // directions dock: after the welcome screen, until the visit card
-    const dock = $('.dock'); let heroIn = true, visitIn = false;
-    new IntersectionObserver(es => {
-      es.forEach(e => { if (e.target.id === 'visit') visitIn = e.isIntersecting; else heroIn = e.isIntersecting; });
-      dock.classList.toggle('show', !heroIn && !visitIn);
-    }).observe($('.m-hero'));
+    const dock = $('.dock'); let heroIn = true, visitIn = false, heroObs = null;
+    function watchHero(el){
+      if (heroObs) heroObs.disconnect();
+      heroObs = new IntersectionObserver(es => { heroIn = es[0].isIntersecting; dock.classList.toggle('show', !heroIn && !visitIn); });
+      heroObs.observe(el);
+    }
+    watchHero(upright ? $('#hero') : $('.m-hero'));
     new IntersectionObserver(es => {
       es.forEach(e => { visitIn = e.isIntersecting; });
       dock.classList.toggle('show', !heroIn && !visitIn);

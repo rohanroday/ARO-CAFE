@@ -1,4 +1,4 @@
-import { $, $$, clamp, smoothstep, ASSETS } from './utils.js';
+import { $, $$, clamp, ASSETS } from './utils.js';
 import { N, DIMS } from './constants.js';
 
 /* ---------- phone hero film: always moving ----------
@@ -7,9 +7,7 @@ import { N, DIMS } from './constants.js';
    (images are never blocked), and the first tap hands back over to the real video in place. */
 const CLIP = 691, HEAD = 24, VFRAMES = CLIP - HEAD, VFPS = 24;   // master frames, frames folded into the loop seam
 function framePlayer(cv, mode, from){
-  // portrait shows a square window of the wide frames, drifting right to keep the cup in view (same as the video)
-  const [sw, h] = DIMS.d, w = mode === 'm' ? h : sw; cv.width = w; cv.height = h;
-  const sx = i => mode === 'm' ? 280 + 186.7 * smoothstep(i * 2, 450, 630) : 0;
+  const [w, h] = DIMS[mode]; cv.width = w; cv.height = h;   // portrait: the tall 9:16 frames, landscape: the wide ones
   const g = cv.getContext('2d', { alpha: false });
   const imgs = new Array(N), FPS = 12, FADE = 1, RUN = (N - 1) / FPS, LEN = RUN + FADE;
   let got = 0, qi = 0, t = HEAD / 2 / FPS, last = 0, raf = 0, dead = false, running = false, drawn = -1, started = false, seen = false;
@@ -18,7 +16,7 @@ function framePlayer(cv, mode, from){
   const pump = async () => {
     while (!dead && qi < N) {
       const i = (first + qi++) % N, img = new Image(); img.decoding = 'async';
-      img.src = `${ASSETS}/seq/d/${String(i + 1).padStart(3, '0')}.webp`;
+      img.src = `${ASSETS}/seq/${mode}/${String(i + 1).padStart(3, '0')}.webp`;
       try { await img.decode(); imgs[i] = img; } catch (_) { imgs[i] = false; }
       got++;
     }
@@ -41,8 +39,8 @@ function framePlayer(cv, mode, from){
     if (key !== drawn) {
       const ia = pick(a), ib = pick(b);
       if (ia) {
-        g.globalAlpha = 1; g.drawImage(ia, sx(a), 0, w, h, 0, 0, w, h);
-        if (ib && ib !== ia && mix > .01) { g.globalAlpha = mix; g.drawImage(ib, sx(b), 0, w, h, 0, 0, w, h); }
+        g.globalAlpha = 1; g.drawImage(ia, 0, 0, w, h);
+        if (ib && ib !== ia && mix > .01) { g.globalAlpha = mix; g.drawImage(ib, 0, 0, w, h); }
         drawn = key; if (!seen) { seen = true; cv.classList.add('on'); }
       }
     }
